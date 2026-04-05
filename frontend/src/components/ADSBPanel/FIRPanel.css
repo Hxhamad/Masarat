@@ -1,0 +1,135 @@
+/* ===== FIR Panel Styles — Control Tower Theme ===== */
+
+.fir-panel {
+  border-bottom: 1px solid var(--border-color);
+}
+
+.fir-panel__header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.fir-panel__header span {
+  flex: 1;
+}
+
+/* Manage button */
+.fir-panel__manage-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: none;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.fir-panel__manage-btn:hover {
+  background: var(--bg-hover);
+  color: var(--accent);
+  border-color: var(--accent-dim);
+}
+
+/* Body */
+.fir-panel__body {
+  padding: 0 12px 10px;
+}
+
+/* Chips */
+.fir-panel__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.fir-panel__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--accent-glow);
+  border: 1px solid var(--accent-dim);
+  border-radius: 12px;
+  padding: 3px 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--accent);
+}
+
+.fir-panel__chip-icon {
+  flex-shrink: 0;
+  color: var(--accent);
+}
+
+.fir-panel__chip-text {
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fir-panel__chip-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  border-radius: 50%;
+  padding: 0;
+}
+
+.fir-panel__chip-remove:hover {
+  background: var(--accent-dim);
+  color: var(--text-primary);
+}
+
+/* Scope Toggle */
+.fir-panel__scope {
+  display: flex;
+  gap: 0;
+  margin-top: 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.fir-panel__scope-btn {
+  flex: 1;
+  padding: 4px 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.fir-panel__scope-btn + .fir-panel__scope-btn {
+  border-left: 1px solid var(--border-color);
+}
+
+.fir-panel__scope-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.fir-panel__scope-btn--active {
+  background: var(--accent-glow);
+  color: var(--accent);
+  font-weight: 600;
+}

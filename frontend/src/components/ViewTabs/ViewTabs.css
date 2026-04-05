@@ -1,0 +1,29 @@
+.view-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border-color);
+  padding: 0;
+}
+
+.view-tabs__tab {
+  flex: 1;
+  padding: 8px 4px;
+  border: none;
+  background: transparent;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+  border-bottom: 2px solid transparent;
+}
+
+.view-tabs__tab:hover {
+  color: var(--text-secondary);
+}
+
+.view-tabs__tab--active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}

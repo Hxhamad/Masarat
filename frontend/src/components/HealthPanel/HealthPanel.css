@@ -1,0 +1,251 @@
+.health-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 0;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.hp-empty, .hp-loading, .hp-error {
+  padding: 24px 16px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.hp-error {
+  color: var(--status-error);
+}
+
+/* ── CHI Hero ── */
+
+.hp-hero {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 14px 10px;
+}
+
+.hp-hero__chi {
+  font-family: var(--font-mono);
+  font-size: 42px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.hp-hero__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.hp-hero__label {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.hp-hero__fir {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.hp-hero__country {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+/* ── Pillar Gauges ── */
+
+.hp-scores {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px 14px;
+}
+
+.hp-gauge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hp-gauge__header {
+  display: flex;
+  justify-content: space-between;
+  width: 80px;
+  flex-shrink: 0;
+}
+
+.hp-gauge__label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.hp-gauge__weight {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-muted);
+}
+
+.hp-gauge__bar-bg {
+  flex: 1;
+  height: 6px;
+  background: var(--bg-active);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.hp-gauge__bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width var(--transition-normal);
+}
+
+.hp-gauge__value {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  width: 24px;
+  text-align: right;
+}
+
+/* ── Stats strip ── */
+
+.hp-stats {
+  display: flex;
+  justify-content: space-around;
+  padding: 8px 14px;
+  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.hp-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.hp-stat__value {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.hp-stat__label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ── Sections ── */
+
+.hp-section {
+  padding: 8px 14px;
+}
+
+.hp-section__title {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+
+/* Sparkline */
+
+.hp-spark {
+  width: 100%;
+  height: 40px;
+  display: block;
+}
+
+.hp-spark--empty {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Inefficiency list */
+
+.hp-ineff-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.hp-ineff-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.hp-ineff-item__cs {
+  color: var(--text-primary);
+  font-weight: 600;
+  flex: 1;
+}
+
+.hp-ineff-item__kea {
+  color: var(--status-warn);
+}
+
+.hp-ineff-item__detour {
+  color: var(--text-muted);
+  font-size: 10px;
+}
+
+/* Mini cards for other FIRs */
+
+.hp-mini-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.hp-mini-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px;
+  background: var(--bg-hover);
+  border-radius: 4px;
+  min-width: 80px;
+}
+
+.hp-mini-card__id {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.hp-mini-card__chi {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.hp-mini-card__chi--loading {
+  color: var(--text-muted);
+}

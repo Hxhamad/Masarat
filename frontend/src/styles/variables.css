@@ -1,0 +1,79 @@
+/* ===== MASARAT — CSS Custom Properties ===== */
+
+:root {
+  /* ── Control Tower (Dark) Theme ── */
+  --bg-primary: #0a0e14;
+  --bg-secondary: #111820;
+  --bg-panel: #151c27;
+  --bg-hover: #1a2332;
+  --bg-active: #1f2b3d;
+
+  --text-primary: #e0e6ed;
+  --text-secondary: #8899aa;
+  --text-muted: #7a8da0;
+
+  --border-color: #1e2a3a;
+  --border-hover: #2a3a4e;
+
+  /* Accent */
+  --accent: #00d4ff;
+  --accent-dim: #0099bb;
+  --accent-glow: rgba(0, 212, 255, 0.15);
+
+  /* Status */
+  --status-ok: #00e676;
+  --status-warn: #ffab00;
+  --status-error: #ff5252;
+
+  /* Flight type colors */
+  --flight-airline: #00d4ff;
+  --flight-private: #ab47bc;
+  --flight-cargo: #ff9800;
+  --flight-military: #f44336;
+  --flight-ground: #78909c;
+  --flight-helicopter: #66bb6a;
+
+  /* Source badge */
+  --source-adsb: #00e676;
+  --source-mlat: #ffab00;
+  --source-other: #78909c;
+
+  /* Panel */
+  --panel-radius: 8px;
+  --panel-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+
+  /* Font */
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+
+  /* Sizes */
+  --header-height: 48px;
+  --status-bar-height: 28px;
+  --info-panel-width: 360px;
+
+  /* Animation */
+  --transition-fast: 120ms ease;
+  --transition-normal: 200ms ease;
+}
+
+/* ── Civilian (Light) Theme ── */
+[data-theme="light"] {
+  --bg-primary: #f5f7fa;
+  --bg-secondary: #ffffff;
+  --bg-panel: #ffffff;
+  --bg-hover: #eef1f6;
+  --bg-active: #e2e7ef;
+
+  --text-primary: #1a2332;
+  --text-secondary: #556677;
+  --text-muted: #6b7a8a;
+
+  --border-color: #dde3ec;
+  --border-hover: #c5cdd8;
+
+  --accent: #0077cc;
+  --accent-dim: #005fa3;
+  --accent-glow: rgba(0, 119, 204, 0.1);
+
+  --panel-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}

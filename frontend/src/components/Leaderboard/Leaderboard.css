@@ -1,0 +1,129 @@
+.leaderboard {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.lb-loading, .lb-error, .lb-empty {
+  padding: 24px 16px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.lb-error {
+  color: var(--status-error);
+}
+
+/* ── Awards strip ── */
+
+.lb-awards {
+  display: flex;
+  gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.lb-award {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 8px;
+  background: var(--bg-hover);
+  border-radius: 6px;
+}
+
+.lb-award__icon {
+  font-size: 20px;
+}
+
+.lb-award__title {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.lb-award__fir {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-primary);
+  font-weight: 600;
+  text-align: center;
+}
+
+.lb-award__value {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* ── Table ── */
+
+.lb-table {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.lb-table__header {
+  display: flex;
+  align-items: center;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border-color);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: sticky;
+  top: 0;
+  background: var(--bg-panel);
+  z-index: 1;
+}
+
+.lb-table__body {
+  display: flex;
+  flex-direction: column;
+}
+
+.lb-row {
+  display: flex;
+  align-items: center;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border-color);
+  transition: background var(--transition-fast);
+}
+
+.lb-row:hover {
+  background: var(--bg-hover);
+}
+
+/* Column widths */
+.lb-col { font-family: var(--font-mono); font-size: 11px; }
+.lb-col--rank { width: 36px; text-align: center; flex-shrink: 0; }
+.lb-col--fir { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.lb-col--chi { width: 32px; text-align: center; font-weight: 700; flex-shrink: 0; }
+.lb-col--flights { width: 44px; text-align: center; color: var(--text-secondary); flex-shrink: 0; }
+.lb-col--eff { width: 36px; text-align: center; color: var(--text-secondary); flex-shrink: 0; }
+.lb-col--sat { width: 36px; text-align: center; color: var(--text-secondary); flex-shrink: 0; }
+.lb-col--co2 { width: 52px; text-align: right; color: var(--text-muted); font-size: 10px; flex-shrink: 0; }
+
+.lb-fir__id {
+  font-weight: 600;
+  color: var(--accent);
+  font-size: 11px;
+}
+
+.lb-fir__name {
+  font-size: 9px;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
