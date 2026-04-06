@@ -21,7 +21,7 @@ type RGBA = [number, number, number, number];
 
 const AIRCRAFT_ICON_SVG = `
   <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24">
-    <path fill="white" d="M12 2L8 10H3L5 13H8L10 20H14L16 13H19L21 10H16L12 2Z"/>
+    <path fill="white" d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/>
   </svg>
 `;
 
@@ -205,12 +205,14 @@ export default function DenseFlightLayer() {
               ${Math.round(object.groundSpeed)} kt · ${Math.round(object.heading)}°
             </div>`,
             style: {
-              backgroundColor: 'rgba(8,12,18,0.96)',
-              color: '#e5edf5',
-              border: '1px solid rgba(148,163,184,0.25)',
-              borderRadius: '8px',
-              padding: '6px 8px',
+              backgroundColor: 'rgba(10,16,38,0.92)',
+              color: '#f1f6ff',
+              border: '1px solid rgba(157,179,226,0.18)',
+              borderRadius: '16px',
+              padding: '8px 10px',
               maxWidth: '200px',
+              backdropFilter: 'blur(12px)',
+              boxShadow: '0 14px 30px rgba(2,6,23,0.32)',
             },
           };
         },

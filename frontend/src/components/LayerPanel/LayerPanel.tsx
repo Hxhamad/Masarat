@@ -91,38 +91,51 @@ export default function LayerPanel({ open, onClose }: Props) {
       <div className="layer-panel-overlay" onClick={onClose} />
       <div className="layer-panel">
         <div className="layer-panel__header">
-          <span className="layer-panel__title">Map Layers</span>
+          <div className="layer-panel__headline">
+            <span className="layer-panel__eyebrow">Overlay control</span>
+            <span className="layer-panel__title">Map Layers</span>
+          </div>
           <button className="layer-panel__close" onClick={onClose} aria-label="Close layer panel">
             <X size={14} />
           </button>
         </div>
         <div className="layer-panel__body">
-          <div className="layer-panel__section-title">Weather</div>
-          <LayerRow
-            on={weatherRadarEnabled} onToggle={toggleWeatherRadar}
-            label="Radar Overlay" scope="global"
-            description="Global precipitation imagery from RainViewer"
-          />
-          <LayerRow
-            on={weatherMetarEnabled} onToggle={toggleWeatherMetar}
-            label="METAR Stations" scope="fir"
-            description="Airport weather observations — visibility, ceiling, wind"
-            hint={metarHint}
-          />
-          <LayerRow
-            on={weatherAlertsEnabled} onToggle={toggleWeatherAlerts}
-            label="SIGMETs / AIRMETs" scope="fir"
-            description="Significant weather advisories and alert polygons"
-            hint={alertsHint}
-          />
+          <div className="layer-panel__intro">
+            Choose the live weather and surveillance context you want on the map. FIR-scoped layers only load where monitored coverage exists.
+          </div>
 
-          <div className="layer-panel__section-title">Navigation Anomaly</div>
-          <LayerRow
-            on={gnssHeatmapEnabled} onToggle={toggleGNSSHeatmap}
-            label="GNSS Jamming Hex Layer" scope="viewport"
-            description="GPS/GNSS anomaly detection scored per H3 hex cell"
-            hint={gnssHint}
-          />
+          <section className="layer-panel__section">
+            <div className="layer-panel__section-title">Weather overlays</div>
+            <div className="layer-panel__section-copy">Atmospheric context for precipitation, stations, and advisory polygons.</div>
+            <LayerRow
+              on={weatherRadarEnabled} onToggle={toggleWeatherRadar}
+              label="Radar Overlay" scope="global"
+              description="Global precipitation imagery from RainViewer"
+            />
+            <LayerRow
+              on={weatherMetarEnabled} onToggle={toggleWeatherMetar}
+              label="METAR Stations" scope="fir"
+              description="Airport weather observations — visibility, ceiling, wind"
+              hint={metarHint}
+            />
+            <LayerRow
+              on={weatherAlertsEnabled} onToggle={toggleWeatherAlerts}
+              label="SIGMETs / AIRMETs" scope="fir"
+              description="Significant weather advisories and alert polygons"
+              hint={alertsHint}
+            />
+          </section>
+
+          <section className="layer-panel__section">
+            <div className="layer-panel__section-title">Navigation anomaly</div>
+            <div className="layer-panel__section-copy">Viewport-driven surveillance confidence for suspected GNSS disruption.</div>
+            <LayerRow
+              on={gnssHeatmapEnabled} onToggle={toggleGNSSHeatmap}
+              label="GNSS Jamming Hex Layer" scope="viewport"
+              description="GPS/GNSS anomaly detection scored per H3 hex cell"
+              hint={gnssHint}
+            />
+          </section>
         </div>
       </div>
     </>

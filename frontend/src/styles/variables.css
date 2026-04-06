@@ -1,79 +1,113 @@
-/* ===== MASARAT — CSS Custom Properties ===== */
+/* ===== MASARAT — Premium Dashboard Tokens ===== */
 
 :root {
-  /* ── Control Tower (Dark) Theme ── */
-  --bg-primary: #0a0e14;
-  --bg-secondary: #111820;
-  --bg-panel: #151c27;
-  --bg-hover: #1a2332;
-  --bg-active: #1f2b3d;
+  /* Core surfaces */
+  --bg-primary: #050817;
+  --bg-secondary: rgba(10, 16, 34, 0.84);
+  --bg-panel: rgba(12, 18, 41, 0.8);
+  --bg-card: rgba(18, 27, 58, 0.84);
+  --bg-card-strong: rgba(22, 32, 68, 0.94);
+  --bg-hover: rgba(33, 48, 94, 0.72);
+  --bg-active: rgba(64, 90, 170, 0.32);
+  --bg-soft: rgba(255, 255, 255, 0.05);
+  --bg-overlay: rgba(4, 8, 20, 0.74);
 
-  --text-primary: #e0e6ed;
-  --text-secondary: #8899aa;
-  --text-muted: #7a8da0;
+  /* Typography */
+  --text-primary: #f1f6ff;
+  --text-secondary: #c5d5f4;
+  --text-muted: #879ac1;
+  --text-soft: #9eb0d8;
 
-  --border-color: #1e2a3a;
-  --border-hover: #2a3a4e;
+  /* Borders and effects */
+  --border-color: rgba(157, 179, 226, 0.16);
+  --border-hover: rgba(123, 169, 255, 0.36);
+  --border-strong: rgba(255, 255, 255, 0.12);
+  --panel-shadow: 0 24px 80px rgba(2, 6, 23, 0.46);
+  --panel-shadow-soft: 0 16px 44px rgba(3, 8, 23, 0.28);
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 
-  /* Accent */
-  --accent: #00d4ff;
-  --accent-dim: #0099bb;
-  --accent-glow: rgba(0, 212, 255, 0.15);
+  /* Accent system */
+  --accent: #63e7ff;
+  --accent-dim: #2ea7cb;
+  --accent-glow: rgba(99, 231, 255, 0.18);
+  --accent-secondary: #ff6c9f;
+  --accent-secondary-glow: rgba(255, 108, 159, 0.18);
+  --accent-gold: #ffbe68;
 
   /* Status */
-  --status-ok: #00e676;
-  --status-warn: #ffab00;
-  --status-error: #ff5252;
+  --status-ok: #58e58d;
+  --status-warn: #ffba57;
+  --status-error: #ff6f83;
 
   /* Flight type colors */
-  --flight-airline: #00d4ff;
-  --flight-private: #ab47bc;
-  --flight-cargo: #ff9800;
-  --flight-military: #f44336;
-  --flight-ground: #78909c;
-  --flight-helicopter: #66bb6a;
+  --flight-airline: #63e7ff;
+  --flight-private: #ff6c9f;
+  --flight-cargo: #ffbe68;
+  --flight-military: #ff7b72;
+  --flight-ground: #8da4c7;
+  --flight-helicopter: #8be08f;
 
   /* Source badge */
-  --source-adsb: #00e676;
-  --source-mlat: #ffab00;
-  --source-other: #78909c;
+  --source-adsb: #58e58d;
+  --source-mlat: #ffba57;
+  --source-other: #8da4c7;
 
-  /* Panel */
-  --panel-radius: 8px;
-  --panel-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  /* Radii */
+  --panel-radius: 24px;
+  --radius-sm: 12px;
+  --radius-md: 18px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --pill-radius: 999px;
 
-  /* Font */
+  /* Fonts */
+  --font-display: 'Space Grotesk', 'Segoe UI', sans-serif;
+  --font-sans: 'Sora', 'Segoe UI', sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 
-  /* Sizes */
-  --header-height: 48px;
-  --status-bar-height: 28px;
-  --info-panel-width: 360px;
+  /* Layout */
+  --shell-gap: 16px;
+  --header-height: 92px;
+  --header-bar-height: 76px;
+  --status-bar-height: 76px;
+  --status-bar-bar-height: 60px;
+  --left-rail-width: 344px;
+  --info-panel-width: 396px;
+  --surface-blur: 18px;
 
-  /* Animation */
-  --transition-fast: 120ms ease;
-  --transition-normal: 200ms ease;
+  /* Motion */
+  --transition-fast: 150ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --transition-normal: 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --transition-slow: 420ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-/* ── Civilian (Light) Theme ── */
 [data-theme="light"] {
-  --bg-primary: #f5f7fa;
-  --bg-secondary: #ffffff;
-  --bg-panel: #ffffff;
-  --bg-hover: #eef1f6;
-  --bg-active: #e2e7ef;
+  --bg-primary: #eef4ff;
+  --bg-secondary: rgba(255, 255, 255, 0.88);
+  --bg-panel: rgba(255, 255, 255, 0.9);
+  --bg-card: rgba(245, 248, 255, 0.92);
+  --bg-card-strong: rgba(255, 255, 255, 0.98);
+  --bg-hover: rgba(216, 228, 250, 0.9);
+  --bg-active: rgba(76, 138, 255, 0.12);
+  --bg-soft: rgba(16, 24, 40, 0.04);
+  --bg-overlay: rgba(222, 230, 244, 0.72);
 
-  --text-primary: #1a2332;
-  --text-secondary: #556677;
-  --text-muted: #6b7a8a;
+  --text-primary: #13213f;
+  --text-secondary: #314367;
+  --text-muted: #637598;
+  --text-soft: #546787;
 
-  --border-color: #dde3ec;
-  --border-hover: #c5cdd8;
+  --border-color: rgba(74, 101, 148, 0.16);
+  --border-hover: rgba(70, 120, 210, 0.24);
+  --border-strong: rgba(20, 30, 60, 0.08);
+  --panel-shadow: 0 24px 60px rgba(25, 46, 93, 0.12);
+  --panel-shadow-soft: 0 12px 28px rgba(25, 46, 93, 0.08);
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.65);
 
-  --accent: #0077cc;
-  --accent-dim: #005fa3;
-  --accent-glow: rgba(0, 119, 204, 0.1);
-
-  --panel-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  --accent: #0d9fd5;
+  --accent-dim: #0a78a2;
+  --accent-glow: rgba(13, 159, 213, 0.12);
+  --accent-secondary: #f0578f;
+  --accent-secondary-glow: rgba(240, 87, 143, 0.12);
+  --accent-gold: #d98d27;
 }

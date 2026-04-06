@@ -18,14 +18,17 @@ document.documentElement.setAttribute('data-theme', initialTheme);
 interface UIState {
   theme: Theme;
   infoPanelOpen: boolean;
+  layerPanelOpen: boolean;
 
   toggleTheme: () => void;
   setInfoPanelOpen: (open: boolean) => void;
+  setLayerPanelOpen: (open: boolean) => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
   theme: initialTheme,
   infoPanelOpen: false,
+  layerPanelOpen: false,
 
   toggleTheme: () =>
     set((state) => {
@@ -36,4 +39,5 @@ export const useUIStore = create<UIState>((set) => ({
     }),
 
   setInfoPanelOpen: (infoPanelOpen) => set({ infoPanelOpen }),
+  setLayerPanelOpen: (layerPanelOpen) => set({ layerPanelOpen }),
 }));

@@ -1,18 +1,21 @@
 .health-panel {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: 8px 0;
+  gap: 12px;
+  padding: 14px 18px 18px;
   overflow-y: auto;
   flex: 1;
 }
 
 .hp-empty, .hp-loading, .hp-error {
-  padding: 24px 16px;
+  padding: 28px 18px;
   text-align: center;
   font-family: var(--font-mono);
   font-size: 12px;
   color: var(--text-muted);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .hp-error {
@@ -24,13 +27,16 @@
 .hp-hero {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 14px 14px 10px;
+  gap: 16px;
+  padding: 18px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(99, 231, 255, 0.12), rgba(255, 108, 159, 0.08));
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .hp-hero__chi {
   font-family: var(--font-mono);
-  font-size: 42px;
+  font-size: 48px;
   font-weight: 700;
   line-height: 1;
 }
@@ -42,20 +48,18 @@
 }
 
 .hp-hero__label {
-  font-family: var(--font-mono);
-  font-size: 13px;
+  font-family: var(--font-display);
+  font-size: 18px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
 .hp-hero__fir {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--text-secondary);
 }
 
 .hp-hero__country {
-  font-size: 10px;
+  font-size: 11px;
   color: var(--text-muted);
 }
 
@@ -64,8 +68,11 @@
 .hp-scores {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 6px 14px;
+  gap: 10px;
+  padding: 18px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .hp-gauge {
@@ -77,7 +84,7 @@
 .hp-gauge__header {
   display: flex;
   justify-content: space-between;
-  width: 80px;
+  width: 92px;
   flex-shrink: 0;
 }
 
@@ -97,15 +104,15 @@
 
 .hp-gauge__bar-bg {
   flex: 1;
-  height: 6px;
-  background: var(--bg-active);
-  border-radius: 3px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
   overflow: hidden;
 }
 
 .hp-gauge__bar-fill {
   height: 100%;
-  border-radius: 3px;
+  border-radius: 999px;
   transition: width var(--transition-normal);
 }
 
@@ -120,23 +127,25 @@
 /* ── Stats strip ── */
 
 .hp-stats {
-  display: flex;
-  justify-content: space-around;
-  padding: 8px 14px;
-  border-top: 1px solid var(--border-color);
-  border-bottom: 1px solid var(--border-color);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
 }
 
 .hp-stat {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 2px;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 16px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .hp-stat__value {
-  font-family: var(--font-mono);
-  font-size: 14px;
+  font-family: var(--font-display);
+  font-size: 20px;
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -152,16 +161,19 @@
 /* ── Sections ── */
 
 .hp-section {
-  padding: 8px 14px;
+  padding: 18px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .hp-section__title {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 9px;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 6px;
+  letter-spacing: 0.18em;
+  margin-bottom: 10px;
 }
 
 /* Sparkline */
@@ -186,17 +198,19 @@
 .hp-ineff-list {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
 }
 
 .hp-ineff-item {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
   font-family: var(--font-mono);
   font-size: 11px;
-  padding: 4px 0;
-  border-bottom: 1px solid var(--border-color);
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.04);
 }
 
 .hp-ineff-item__cs {
@@ -219,7 +233,7 @@
 .hp-mini-cards {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 10px;
 }
 
 .hp-mini-card {
@@ -227,10 +241,11 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 6px 10px;
-  background: var(--bg-hover);
-  border-radius: 4px;
-  min-width: 80px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 18px;
+  min-width: 120px;
 }
 
 .hp-mini-card__id {

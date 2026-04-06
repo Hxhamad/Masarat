@@ -42,12 +42,18 @@ function GNSSLegend() {
       {totalCells > 0 ? (
         <>
           <div className="gnss-legend__cells">
-            <span className="legend-bar__dot" style={{ background: '#ef4444' }} />
-            <span>Critical ({critical})</span>
-            <span className="legend-bar__dot" style={{ background: '#f59e0b', marginLeft: 6 }} />
-            <span>Elevated ({elevated})</span>
-            <span className="legend-bar__dot" style={{ background: '#22c55e', marginLeft: 6 }} />
-            <span>Mild ({mild})</span>
+            <span className="layer-legend__chip">
+              <span className="legend-bar__dot" style={{ background: '#ef4444' }} />
+              Critical ({critical})
+            </span>
+            <span className="layer-legend__chip">
+              <span className="legend-bar__dot" style={{ background: '#f59e0b' }} />
+              Elevated ({elevated})
+            </span>
+            <span className="layer-legend__chip">
+              <span className="legend-bar__dot" style={{ background: '#22c55e' }} />
+              Mild ({mild})
+            </span>
           </div>
           <div className="gnss-legend__stats">
             {affectedFlights} suspected affected out of {inputFlightCount} flights
@@ -78,19 +84,19 @@ function MetarLegend() {
     <div className="layer-legend__section">
       <div className="layer-legend__title">METAR</div>
       {selectedFIRs.length === 0 ? (
-        <div className="layer-legend__items" style={{ fontSize: '10px', color: '#fbbf24' }}>
+        <div className="layer-legend__note layer-legend__note--warn">
           Select a FIR to see stations
         </div>
       ) : count === 0 ? (
-        <div className="layer-legend__items" style={{ fontSize: '10px' }}>
+        <div className="layer-legend__note">
           No stations loaded
         </div>
       ) : (
         <div className="layer-legend__items">
-          <span className="legend-bar__dot" style={{ background: '#22c55e' }} /> VFR
-          <span className="legend-bar__dot" style={{ background: '#3b82f6', marginLeft: 8 }} /> MVFR
-          <span className="legend-bar__dot" style={{ background: '#ef4444', marginLeft: 8 }} /> IFR
-          <span className="legend-bar__dot" style={{ background: '#a855f7', marginLeft: 8 }} /> LIFR
+          <span className="layer-legend__chip"><span className="legend-bar__dot" style={{ background: '#22c55e' }} /> VFR</span>
+          <span className="layer-legend__chip"><span className="legend-bar__dot" style={{ background: '#3b82f6' }} /> MVFR</span>
+          <span className="layer-legend__chip"><span className="legend-bar__dot" style={{ background: '#ef4444' }} /> IFR</span>
+          <span className="layer-legend__chip"><span className="legend-bar__dot" style={{ background: '#a855f7' }} /> LIFR</span>
         </div>
       )}
     </div>
@@ -105,18 +111,18 @@ function AlertsLegend() {
     <div className="layer-legend__section">
       <div className="layer-legend__title">Alerts</div>
       {selectedFIRs.length === 0 ? (
-        <div className="layer-legend__items" style={{ fontSize: '10px', color: '#fbbf24' }}>
+        <div className="layer-legend__note layer-legend__note--warn">
           Select a FIR to see advisories
         </div>
       ) : count === 0 ? (
-        <div className="layer-legend__items" style={{ fontSize: '10px' }}>
+        <div className="layer-legend__note">
           No active advisories
         </div>
       ) : (
         <div className="layer-legend__items">
-          <span className="legend-bar__dot" style={{ background: '#ef4444' }} /> Warning
-          <span className="legend-bar__dot" style={{ background: '#f59e0b', marginLeft: 8 }} /> Caution
-          <span className="legend-bar__dot" style={{ background: '#3b82f6', marginLeft: 8 }} /> Info
+          <span className="layer-legend__chip"><span className="legend-bar__dot" style={{ background: '#ef4444' }} /> Warning</span>
+          <span className="layer-legend__chip"><span className="legend-bar__dot" style={{ background: '#f59e0b' }} /> Caution</span>
+          <span className="layer-legend__chip"><span className="legend-bar__dot" style={{ background: '#3b82f6' }} /> Info</span>
         </div>
       )}
     </div>
@@ -140,7 +146,7 @@ export default function LayerLegend() {
       {radar && (
         <div className="layer-legend__section">
           <div className="layer-legend__title">Radar</div>
-          <div className="layer-legend__items" style={{ fontSize: '10px' }}>
+          <div className="layer-legend__note">
             Precipitation overlay active
           </div>
         </div>

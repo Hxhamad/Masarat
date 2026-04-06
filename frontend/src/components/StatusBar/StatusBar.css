@@ -1,15 +1,19 @@
 .status-bar {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: var(--status-bar-height);
-  background: var(--bg-secondary);
-  border-top: 1px solid var(--border-color);
+  bottom: var(--shell-gap);
+  left: var(--shell-gap);
+  right: var(--shell-gap);
+  height: var(--status-bar-bar-height);
+  background: linear-gradient(135deg, rgba(11, 17, 38, 0.86), rgba(8, 13, 30, 0.8));
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--glass-highlight), var(--panel-shadow-soft);
+  backdrop-filter: blur(var(--surface-blur));
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 12px;
+  gap: 14px;
+  padding: 0 18px;
   font-family: var(--font-mono);
   font-size: 11px;
   color: var(--text-muted);
@@ -20,24 +24,31 @@
 .status-bar__right {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 8px;
+  min-width: 0;
 }
 
 .status-bar__item {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: var(--pill-radius);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  white-space: nowrap;
 }
 
 .status-bar__dot {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
 }
 
 .status-bar__dot--connected {
   background: var(--status-ok);
-  box-shadow: 0 0 4px var(--status-ok);
+  box-shadow: 0 0 10px rgba(88, 229, 141, 0.65);
 }
 
 .status-bar__dot--connecting {
@@ -59,21 +70,22 @@
 }
 
 .status-bar__source {
-  background: var(--bg-active);
-  padding: 1px 6px;
-  border-radius: 3px;
-  font-size: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 3px 7px;
+  border-radius: var(--pill-radius);
+  font-size: 9px;
   text-transform: uppercase;
+  letter-spacing: 0.14em;
 }
 
 .status-bar__fir-badge {
-  background: var(--accent-dim);
-  color: var(--bg-primary);
-  padding: 1px 5px;
-  border-radius: 3px;
+  background: rgba(99, 231, 255, 0.16);
+  color: var(--accent);
+  padding: 3px 8px;
+  border-radius: var(--pill-radius);
   font-size: 9px;
   font-weight: 700;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.14em;
 }
 
 .status-bar__fir-codes {
@@ -83,4 +95,16 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+@media (max-width: 1200px) {
+  .status-bar {
+    overflow-x: auto;
+    justify-content: flex-start;
+  }
+
+  .status-bar__left,
+  .status-bar__right {
+    flex-shrink: 0;
+  }
 }

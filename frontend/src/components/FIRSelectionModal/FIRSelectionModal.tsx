@@ -71,6 +71,17 @@ export default function FIRSelectionModal() {
           <span className="fir-modal__prompt-hint">Choose up to 6 FIRs for focused panels, or continue without FIRs for a global map view.</span>
         </p>
 
+        <div className="fir-modal__benefits">
+          <div className="fir-modal__benefit">
+            <span className="fir-modal__benefit-title">Focused mode</span>
+            <span className="fir-modal__benefit-copy">Health panels, METAR stations, alerts, and traffic summaries align to your monitored FIRs.</span>
+          </div>
+          <div className="fir-modal__benefit">
+            <span className="fir-modal__benefit-title">Global mode</span>
+            <span className="fir-modal__benefit-copy">Skip selection to keep a world traffic view now and refine monitored FIRs later from the sidebar.</span>
+          </div>
+        </div>
+
         {/* Selected FIR chips */}
         {selectedFIRs.length > 0 && (
           <div className="fir-modal__chips">
@@ -147,7 +158,7 @@ export default function FIRSelectionModal() {
                   <div className="fir-modal__item-info">
                     <span className="fir-modal__item-name">{f.name}</span>
                     <span className="fir-modal__item-meta">
-                      {f.country || ''}
+                      {f.id} · {f.country || 'Region'}
                     </span>
                   </div>
                   {isSelected && (

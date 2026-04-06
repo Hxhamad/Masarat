@@ -19,16 +19,44 @@ export default function InfoPanel() {
   return (
     <aside className={`info-panel ${isOpen ? 'info-panel--open' : ''}`}>
       <div className="info-panel__header">
-        <span className="info-panel__title">
-          {flight?.callsign || flight?.icao24.toUpperCase() || 'Aircraft'}
-        </span>
-        <button className="info-panel__close" onClick={close}>
+        <div className="info-panel__headline">
+          <span className="info-panel__eyebrow">Selected aircraft</span>
+          <div className="info-panel__title-row">
+            <span className="info-panel__title">
+              {flight?.callsign || flight?.icao24.toUpperCase() || 'Aircraft'}
+            </span>
+            {flight && <span className="info-panel__badge">{flight.source.toUpperCase()}</span>}
+          </div>
+        </div>
+        <button className="info-panel__close" onClick={close} aria-label="Close aircraft details">
           <X size={16} />
         </button>
       </div>
 
       {flight ? (
-        <div className="info-panel__body">
+        <>
+          <div className="info-panel__hero">
+            <div className="info-panel__hero-metric">
+              <span className="info-panel__hero-label">Altitude</span>
+              <span className="info-panel__hero-value">{formatAltitude(flight.altitude)}</span>
+            </div>
+            <div className="info-panel__hero-metric">
+              <span className="info-panel__hero-label">Speed</span>
+              <span className="info-panel__hero-value">{formatSpeed(flight.groundSpeed)}</span>
+            </div>
+            <div className="info-panel__hero-metric">
+              <span className="info-panel__hero-label">Heading</span>
+              <span className="info-panel__hero-value">{Math.round(flight.heading)}°</span>
+            </div>
+          </div>
+
+          <div className="info-panel__chips">
+            <span className="info-panel__chip">{flight.aircraftType || 'Unknown airframe'}</span>
+            <span className="info-panel__chip">{flight.registration || flight.icao24.toUpperCase()}</span>
+            {flight.squawk && <span className="info-panel__chip">SQK {flight.squawk}</span>}
+          </div>
+
+          <div className="info-panel__body">
           <div className="info-panel__section">
             <div className="info-panel__section-title">Identification</div>
             <div className="info-panel__row">
@@ -160,7 +188,8 @@ export default function InfoPanel() {
               )}
             </div>
           )}
-        </div>
+          </div>
+        </>
       ) : (
         <div className="info-panel__empty">Select an aircraft to view details</div>
       )}

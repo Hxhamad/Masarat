@@ -1,4 +1,5 @@
 /* ===== MASARAT — Global Styles ===== */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Sora:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
 @import './variables.css';
 
 *,
@@ -21,11 +22,87 @@ body {
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-image:
+    radial-gradient(circle at 16% 18%, rgba(99, 231, 255, 0.2), transparent 28%),
+    radial-gradient(circle at 84% 16%, rgba(255, 108, 159, 0.18), transparent 26%),
+    linear-gradient(180deg, #091022 0%, #050817 52%, #070c1c 100%);
+}
+
+[data-theme='light'] body {
+  background-image:
+    radial-gradient(circle at 15% 18%, rgba(13, 159, 213, 0.12), transparent 30%),
+    radial-gradient(circle at 86% 12%, rgba(240, 87, 143, 0.12), transparent 28%),
+    linear-gradient(180deg, #f7fbff 0%, #eff4fb 100%);
+}
+
+#root {
+  position: relative;
+  isolation: isolate;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+.app-shell {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.app-shell::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 96px 96px;
+  opacity: 0.12;
+  mask-image: radial-gradient(circle at center, black 35%, transparent 90%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.app-shell__ambient {
+  position: fixed;
+  width: 42vw;
+  height: 42vw;
+  border-radius: 50%;
+  filter: blur(96px);
+  opacity: 0.28;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.app-shell__ambient--rose {
+  top: -10vw;
+  right: -8vw;
+  background: rgba(255, 108, 159, 0.48);
+}
+
+.app-shell__ambient--cyan {
+  bottom: -14vw;
+  left: -10vw;
+  background: rgba(99, 231, 255, 0.3);
+}
+
+.app-shell > * {
+  position: relative;
+  z-index: 1;
 }
 
 /* Remove Leaflet default outlines for cleaner look */
 .leaflet-container:focus {
   outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 /* Scrollbar styling */
@@ -34,12 +111,12 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--bg-secondary);
+  background: rgba(255, 255, 255, 0.03);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border-color);
-  border-radius: 3px;
+  background: rgba(170, 189, 227, 0.26);
+  border-radius: 999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -55,4 +132,15 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }
