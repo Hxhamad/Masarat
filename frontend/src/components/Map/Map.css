@@ -114,6 +114,23 @@
   color: var(--text-muted);
 }
 
+.flight-id-tooltip {
+  background: rgba(10, 18, 32, 0.92);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  box-shadow: var(--panel-shadow);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  padding: 4px 6px;
+}
+
+.flight-id-tooltip:before {
+  border-top-color: rgba(10, 18, 32, 0.92);
+}
+
 /* ── FIR Diagnostics Badges ── */
 
 .fir-diag-marker {

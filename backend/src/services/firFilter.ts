@@ -23,29 +23,60 @@ function inPolygon(lat: number, lon: number, entry: FIREntry): boolean {
   return turf.booleanPointInPolygon(pt, entry.feature);
 }
 
-/** Return all cached flights inside a given set of FIR IDs. */
-export function getFlightsInFIRs(firIds: string[]): ADSBFlight[] {
-  const entries: FIREntry[] = [];
-  for (const id of firIds) {
-    const entry = getFIREntry(id);
-    if (entry) entries.push(entry);
-  }
-  if (entries.length === 0) return [];
+// ── Cached FIR membership index ──
+// Rebuilt at most every INDEX_REBUILD_INTERVAL_MS so that health/GNSS jobs
+// don't repeatedly full-scan the flight cache with point-in-polygon tests.
 
+const INDEX_REBUILD_INTERVAL_MS = 30_000; // 30 s
+let firMembershipIndex = new Map<string, Set<string>>(); // firId → Set<icao24>
+let lastIndexRebuild = 0;
+
+function rebuildIndex(): void {
+  const entries = getAllFIREntries();
   const allFlights = flightCache.getAll();
-  const result: ADSBFlight[] = [];
+  const newIndex = new Map<string, Set<string>>();
+
+  for (const entry of entries) {
+    newIndex.set(entry.feature.properties.id, new Set());
+  }
 
   for (const f of allFlights) {
     if (!f.latitude || !f.longitude) continue;
     for (const entry of entries) {
       if (inBounds(f.latitude, f.longitude, entry) &&
           inPolygon(f.latitude, f.longitude, entry)) {
-        result.push(f);
-        break; // No need to check remaining FIRs for this flight
+        newIndex.get(entry.feature.properties.id)!.add(f.icao24);
       }
     }
   }
 
+  firMembershipIndex = newIndex;
+  lastIndexRebuild = Date.now();
+}
+
+function ensureIndex(): void {
+  if (Date.now() - lastIndexRebuild >= INDEX_REBUILD_INTERVAL_MS) {
+    rebuildIndex();
+  }
+}
+
+/** Return all cached flights inside a given set of FIR IDs. */
+export function getFlightsInFIRs(firIds: string[]): ADSBFlight[] {
+  ensureIndex();
+
+  const ids = new Set<string>();
+  for (const firId of firIds) {
+    const members = firMembershipIndex.get(firId);
+    if (members) {
+      for (const id of members) ids.add(id);
+    }
+  }
+
+  const result: ADSBFlight[] = [];
+  for (const icao24 of ids) {
+    const flight = flightCache.get(icao24);
+    if (flight) result.push(flight);
+  }
   return result;
 }
 
@@ -60,25 +91,17 @@ export function getFlightsInFIR(firId: string): ADSBFlight[] {
  * Only considers FIRs in the provided list (or all if empty).
  */
 export function getFlightCountsByFIR(firIds?: string[]): Map<string, number> {
+  ensureIndex();
+
   const entries = firIds && firIds.length > 0
     ? firIds.map(id => getFIREntry(id)).filter((e): e is FIREntry => !!e)
     : getAllFIREntries();
 
   const counts = new Map<string, number>();
   for (const entry of entries) {
-    counts.set(entry.feature.properties.id, 0);
-  }
-
-  const allFlights = flightCache.getAll();
-  for (const f of allFlights) {
-    if (!f.latitude || !f.longitude) continue;
-    for (const entry of entries) {
-      const fId = entry.feature.properties.id;
-      if (inBounds(f.latitude, f.longitude, entry) &&
-          inPolygon(f.latitude, f.longitude, entry)) {
-        counts.set(fId, (counts.get(fId) || 0) + 1);
-      }
-    }
+    const fId = entry.feature.properties.id;
+    const members = firMembershipIndex.get(fId);
+    counts.set(fId, members ? members.size : 0);
   }
 
   return counts;

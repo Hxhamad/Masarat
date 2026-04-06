@@ -4,6 +4,11 @@ import type { ADSBFlight, WSMessage } from '../types.js';
 import { flightCache } from '../services/cache.js';
 import { setUpdateCallback, getStats } from '../services/adsbAggregator.js';
 
+/** Strip trail arrays from flights before WS broadcast to reduce payload. */
+function stripTrails(flights: ADSBFlight[]): ADSBFlight[] {
+  return flights.map(({ trail, ...rest }) => ({ ...rest, trail: [] as ADSBFlight['trail'] }));
+}
+
 let wss: WebSocketServer;
 
 export function getWsConnectionCount(): number {
@@ -27,8 +32,8 @@ export function initWebSocket(server: Server): void {
     // Discard any incoming messages from clients
     ws.on('message', () => { /* noop */ });
 
-    // Send initial snapshot
-    const flights = flightCache.getAll();
+    // Send initial snapshot (trail stripped — clients fetch on-demand)
+    const flights = stripTrails(flightCache.getAll());
     const initMsg: WSMessage = {
       type: 'flight-update',
       data: flights,
@@ -60,7 +65,7 @@ export function initWebSocket(server: Server): void {
     if (flights.length > 0) {
       const updateMsg: WSMessage = {
         type: 'flight-update',
-        data: flights,
+        data: stripTrails(flights),
       };
       messages.push(JSON.stringify(updateMsg));
     }

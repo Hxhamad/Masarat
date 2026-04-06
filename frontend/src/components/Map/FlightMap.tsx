@@ -10,6 +10,8 @@ import { useMapViewportStore } from '../../stores/mapViewportStore';
 import { getFIRBounds } from '../../lib/firService';
 import { flightTypeColor, formatAltitude, formatSpeed, displayCallsign } from '../../lib/utils';
 import { setMapInstance } from './mapRef';
+import { DENSE_FLIGHT_THRESHOLD } from './DenseFlightLayer';
+import { useSelectedFlightTrail } from '../../hooks/useSelectedFlightTrail';
 import FIRDiagnostics from './FIRDiagnostics';
 
 type BaseLayerConfig = {
@@ -122,6 +124,8 @@ export default function FlightMap() {
   const selectedFIRs = useFIRStore((s: ReturnType<typeof useFIRStore.getState>) => s.selectedFIRs);
 
   const flights = useVisibleFlightStore((s) => s.visibleFlights);
+  const viewportKey = useMapViewportStore((s) => s.viewportKey);
+  const selectedTrail = useSelectedFlightTrail();
 
   const cancelMarkerAnimation = useCallback((icao24: string) => {
     const frame = markerAnimationRef.current.get(icao24);
@@ -265,9 +269,35 @@ export default function FlightMap() {
     const map = mapRef.current;
     if (!map) return;
 
+    const bounds = map.getBounds();
+    const south = bounds.getSouth() - 0.5;
+    const north = bounds.getNorth() + 0.5;
+    const west = bounds.getWest() - 0.5;
+    const east = bounds.getEast() + 0.5;
+    const viewportFlights = flights.filter(
+      (f) =>
+        f.latitude >= south &&
+        f.latitude <= north &&
+        f.longitude >= west &&
+        f.longitude <= east,
+    );
+
+    const isDense = viewportFlights.length > DENSE_FLIGHT_THRESHOLD;
+    const shouldShowLabels = !isDense && map.getZoom() >= 7 && viewportFlights.length <= 140;
+    const flightsToRender: ADSBFlight[] = isDense ? [] : [...viewportFlights];
+
+    // Always include the selected flight even if outside viewport.
+    if (
+      selectedFlight &&
+      !flightsToRender.some((f) => f.icao24 === selectedFlight)
+    ) {
+      const sel = flights.find((f) => f.icao24 === selectedFlight);
+      if (sel) flightsToRender.push(sel);
+    }
+
     const currentIds = new Set<string>();
 
-    for (const flight of flights) {
+    for (const flight of flightsToRender) {
       currentIds.add(flight.icao24);
       const color = flightTypeColor(flight.type);
       const isSelected = flight.icao24 === selectedFlight;
@@ -277,7 +307,7 @@ export default function FlightMap() {
 
       if (marker) {
         // Animate position updates when the visible set is moderate enough.
-        if (flights.length <= 750) {
+        if (flightsToRender.length <= 750) {
           animateMarkerPosition(flight.icao24, marker, flight.latitude, flight.longitude);
         } else {
           cancelMarkerAnimation(flight.icao24);
@@ -310,6 +340,16 @@ export default function FlightMap() {
       } else if (!existingPopup) {
         marker.bindPopup(() => buildPopupHtml(flight), { className: 'flight-popup', closeButton: false });
       }
+
+      marker.unbindTooltip();
+      marker.bindTooltip(displayCallsign(flight), {
+        permanent: shouldShowLabels || flight.icao24 === selectedFlight,
+        direction: 'top',
+        offset: [0, -14],
+        opacity: 0.95,
+        className: 'flight-id-tooltip',
+        sticky: !shouldShowLabels,
+      });
     }
 
     // Remove stale markers
@@ -325,20 +365,22 @@ export default function FlightMap() {
 
   useEffect(() => {
     updateMarkers();
-  }, [updateMarkers]);
+    // viewportKey triggers re-render on pan/zoom so viewport-filtering picks up newly visible flights.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [updateMarkers, viewportKey]);
 
-  // Draw trail for selected flight
+  // Draw trail for selected flight (trail fetched on-demand via REST)
   useEffect(() => {
     const trailLayer = trailLayerRef.current;
     if (!trailLayer) return;
     trailLayer.clearLayers();
 
-    if (!selectedFlight) return;
+    if (!selectedFlight || selectedTrail.length < 2) return;
 
     const flight = flights.find((f) => f.icao24 === selectedFlight);
-    if (!flight || flight.trail.length < 2) return;
+    if (!flight) return;
 
-    const latlngs = flight.trail.map((t) => [t.lat, t.lon] as L.LatLngExpression);
+    const latlngs = selectedTrail.map((t) => [t.lat, t.lon] as L.LatLngExpression);
     L.polyline(latlngs, {
       color: flightTypeColor(flight.type),
       weight: 2,
@@ -346,7 +388,7 @@ export default function FlightMap() {
       dashArray: '6, 4',
       className: 'flight-trail',
     }).addTo(trailLayer);
-  }, [selectedFlight, flights]);
+  }, [selectedFlight, selectedTrail, flights]);
 
   return (
     <>

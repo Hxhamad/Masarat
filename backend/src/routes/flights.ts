@@ -47,10 +47,10 @@ export async function flightRoutes(app: FastifyInstance): Promise<void> {
       return reply.code(404).send({ error: 'Flight not found' });
     }
 
-    // Attach trail from SQLite
+    // Attach trail from SQLite (chronological order) without mutating cached object
     const trail = getTrailHistory(icao24, 60);
-    flight.trail = trail.map(t => ({ lat: t.lat, lon: t.lon, alt: t.alt, ts: t.ts }));
+    const orderedTrail = trail.map(t => ({ lat: t.lat, lon: t.lon, alt: t.alt, ts: t.ts })).reverse();
 
-    return reply.send(flight);
+    return reply.send({ ...flight, trail: orderedTrail });
   });
 }

@@ -4,7 +4,7 @@ import type { ADSBFlight, AggregatorStats, WSMessage } from '../types/flight';
 
 const BACKOFF_BASE = 1000;
 const BACKOFF_MAX = 30000;
-const WS_FLUSH_INTERVAL_MS = 75;
+const WS_FLUSH_INTERVAL_MS = 33;
 
 interface PendingServerBatch {
   updates: Map<string, ADSBFlight>;

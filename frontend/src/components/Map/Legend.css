@@ -68,3 +68,61 @@
   gap: 4px;
   flex-wrap: wrap;
 }
+
+/* ── GNSS gradient bar ── */
+.gnss-legend__bar-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.gnss-legend__bar-label {
+  font-size: 9px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.gnss-legend__gradient {
+  flex: 1;
+  height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(to right, #22c55e, #f59e0b 50%, #ef4444);
+}
+
+.gnss-legend__scale {
+  display: flex;
+  justify-content: space-between;
+  font-size: 8px;
+  color: var(--text-muted);
+  padding: 0 20px;
+}
+
+.gnss-legend__cells {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex-wrap: wrap;
+  font-size: 10px;
+  margin-top: 2px;
+}
+
+.gnss-legend__stats {
+  font-size: 10px;
+  color: var(--text-secondary);
+  margin-top: 1px;
+}
+
+.gnss-legend__evidence-title {
+  font-size: 9px;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+.gnss-legend__evidence {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 9px;
+  color: var(--text-muted);
+}
