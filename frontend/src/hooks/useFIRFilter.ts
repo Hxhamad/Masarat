@@ -27,6 +27,7 @@ export function useFIRFilter(flights: ADSBFlight[]): ADSBFlight[] {
   const aircraftScope = useFilterStore((s) => s.aircraftScope);
   const [workerResult, setWorkerResult] = useState<Set<string> | null>(null);
   const workerRef = useRef<Worker | null>(null);
+  const requestIdRef = useRef(0);
 
   // Build FIR data for filtering (memoised on selection change)
   const selectedFIRData = useMemo(() => {
@@ -85,12 +86,17 @@ export function useFIRFilter(flights: ADSBFlight[]): ADSBFlight[] {
 
     const worker = workerRef.current;
 
+    const currentRequestId = ++requestIdRef.current;
+
     const handler = (e: MessageEvent<FIRWorkerResponse>) => {
-      setWorkerResult(new Set(e.data.insideIds));
+      if (e.data.requestId === currentRequestId) {
+        setWorkerResult(new Set(e.data.insideIds));
+      }
     };
     worker.addEventListener('message', handler);
 
     const request: FIRWorkerRequest = {
+      requestId: currentRequestId,
       flights: flights.map((f) => ({ icao24: f.icao24, lat: f.latitude, lng: f.longitude })),
       firs: selectedFIRData,
     };
@@ -131,7 +137,7 @@ export function useFIRFilter(flights: ADSBFlight[]): ADSBFlight[] {
       return flights.filter((f) => workerResult.has(f.icao24));
     }
 
-    // Worker hasn't responded yet — show nothing until filter settles
-    return [];
+    // Worker hasn't responded yet — inline fallback to avoid blanking
+    return inlineFilter(flights, selectedFIRData);
   }, [flights, selectedFIRData, workerResult, inlineFilter, aircraftScope]);
 }

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useLayerStore } from '../stores/layerStore';
 import { useWeatherStore } from '../stores/weatherStore';
 import { useFIRStore } from '../stores/firStore';
@@ -15,86 +15,82 @@ export function useWeatherPolling() {
   const radarEnabled = useLayerStore((s) => s.weatherRadarEnabled);
 
   const store = useWeatherStore;
-  const mountedRef = useRef(true);
 
   // METAR polling
   useEffect(() => {
     if (!metarEnabled || selectedFIRs.length === 0) return;
 
-    let timer: ReturnType<typeof setInterval> | null = null;
+    const controller = new AbortController();
+    const { signal } = controller;
 
     async function poll() {
-      if (!mountedRef.current) return;
+      if (signal.aborted) return;
       store.getState().setMetarLoading(true);
       try {
-        const all = await Promise.all(selectedFIRs.map(fetchMetarByFIR));
-        if (!mountedRef.current) return;
+        const all = await Promise.all(selectedFIRs.map((id) => fetchMetarByFIR(id, signal)));
+        if (signal.aborted) return;
         store.getState().setMetar(all.flat());
       } catch {
-        // ignore
+        // ignore (includes AbortError)
       } finally {
-        if (mountedRef.current) store.getState().setMetarLoading(false);
+        if (!signal.aborted) store.getState().setMetarLoading(false);
       }
     }
 
     void poll();
-    timer = setInterval(() => void poll(), METAR_INTERVAL);
-    return () => { if (timer) clearInterval(timer); };
+    const timer = setInterval(() => void poll(), METAR_INTERVAL);
+    return () => { controller.abort(); clearInterval(timer); };
   }, [metarEnabled, selectedFIRs]);
 
   // Alerts polling
   useEffect(() => {
     if (!alertsEnabled || selectedFIRs.length === 0) return;
 
-    let timer: ReturnType<typeof setInterval> | null = null;
+    const controller = new AbortController();
+    const { signal } = controller;
 
     async function poll() {
-      if (!mountedRef.current) return;
+      if (signal.aborted) return;
       store.getState().setAlertsLoading(true);
       try {
-        const items = await fetchAlerts(selectedFIRs);
-        if (!mountedRef.current) return;
+        const items = await fetchAlerts(selectedFIRs, signal);
+        if (signal.aborted) return;
         store.getState().setAlerts(items);
       } catch {
-        // ignore
+        // ignore (includes AbortError)
       } finally {
-        if (mountedRef.current) store.getState().setAlertsLoading(false);
+        if (!signal.aborted) store.getState().setAlertsLoading(false);
       }
     }
 
     void poll();
-    timer = setInterval(() => void poll(), ALERT_INTERVAL);
-    return () => { if (timer) clearInterval(timer); };
+    const timer = setInterval(() => void poll(), ALERT_INTERVAL);
+    return () => { controller.abort(); clearInterval(timer); };
   }, [alertsEnabled, selectedFIRs]);
 
   // Radar polling (global — not FIR-scoped)
   useEffect(() => {
     if (!radarEnabled) return;
 
-    let timer: ReturnType<typeof setInterval> | null = null;
+    const controller = new AbortController();
+    const { signal } = controller;
 
     async function poll() {
-      if (!mountedRef.current) return;
+      if (signal.aborted) return;
       store.getState().setRadarLoading(true);
       try {
-        const catalog = await fetchRadarFrames();
-        if (!mountedRef.current) return;
+        const catalog = await fetchRadarFrames(signal);
+        if (signal.aborted) return;
         store.getState().setRadarCatalog(catalog);
       } catch {
-        // ignore
+        // ignore (includes AbortError)
       } finally {
-        if (mountedRef.current) store.getState().setRadarLoading(false);
+        if (!signal.aborted) store.getState().setRadarLoading(false);
       }
     }
 
     void poll();
-    timer = setInterval(() => void poll(), RADAR_INTERVAL);
-    return () => { if (timer) clearInterval(timer); };
+    const timer = setInterval(() => void poll(), RADAR_INTERVAL);
+    return () => { controller.abort(); clearInterval(timer); };
   }, [radarEnabled]);
-
-  // Cleanup
-  useEffect(() => {
-    mountedRef.current = true;
-    return () => { mountedRef.current = false; };
-  }, []);
 }

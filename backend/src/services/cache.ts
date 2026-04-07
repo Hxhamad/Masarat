@@ -72,12 +72,12 @@ class FlightCache {
     return this.cache.delete(icao24);
   }
 
-  /** Remove all flights not updated since cutoff ms ago. Returns removed icao24s. */
-  evictStale(maxAgeMs = DEFAULT_TTL): string[] {
-    const cutoff = Date.now() - maxAgeMs;
+  /** Remove all flights whose server-set expiry has passed. Returns removed icao24s. */
+  evictStale(): string[] {
+    const now = Date.now();
     const removed: string[] = [];
     for (const [key, entry] of this.cache) {
-      if (entry.flight.timestamp < cutoff) {
+      if (now > entry.expiresAt) {
         this.cache.delete(key);
         removed.push(key);
       }

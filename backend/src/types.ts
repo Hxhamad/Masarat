@@ -164,3 +164,21 @@ export interface WSStats {
 }
 
 export type WSMessage = WSFlightUpdate | WSFlightRemove | WSStats;
+
+// ===== Client → Server WS commands =====
+
+export interface WSSubscribe {
+  type: 'subscribe';
+  viewport: {
+    minLat: number;
+    maxLat: number;
+    minLng: number;
+    maxLng: number;
+  };
+}
+
+export interface WSUnsubscribe {
+  type: 'unsubscribe';
+}
+
+export type WSClientMessage = WSSubscribe | WSUnsubscribe;

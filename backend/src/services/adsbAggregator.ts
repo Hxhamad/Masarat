@@ -1,4 +1,4 @@
-import type { ADSBFlight, ReadsBResponse, OpenSkyResponse, AggregatorStats } from '../types.js';
+import type { ADSBFlight, AggregatorStats } from '../types.js';
 import { normalizeReadsB, normalizeOpenSky } from './normalizer.js';
 import { flightCache } from './cache.js';
 import { insertTrailPoint } from '../db/sqlite.js';
@@ -16,19 +16,19 @@ const sources: SourceConfig[] = [
   {
     name: 'adsb-lol',
     url: 'https://api.adsb.lol/v2/lat/0/lon/0/dist/20000',
-    normalize: (d) => normalizeReadsB(d as ReadsBResponse),
+    normalize: (d) => normalizeReadsB(d),
     rateLimit: 8_000,
   },
   {
     name: 'airplanes-live',
     url: 'https://api.airplanes.live/v2/point/46/2/1200',
-    normalize: (d) => normalizeReadsB(d as ReadsBResponse),
+    normalize: (d) => normalizeReadsB(d),
     rateLimit: 4_000,
   },
   {
     name: 'opensky',
     url: 'https://opensky-network.org/api/states/all',
-    normalize: (d) => normalizeOpenSky(d as OpenSkyResponse),
+    normalize: (d) => normalizeOpenSky(d),
     rateLimit: 12_000,
   },
 ];
@@ -279,9 +279,9 @@ function schedulePoll(delay: number): void {
   pollTimer = setTimeout(poll, delay);
 }
 
-export function startAggregator(): void {
+export async function startAggregator(): Promise<void> {
   console.log(`[aggregator] Starting with primary source: ${sources[0].name}`);
-  void primeInitialSnapshot();
+  await primeInitialSnapshot();
   poll();
 }
 

@@ -1,5 +1,24 @@
 import type { ADSBFlight, ReadsBAircraft, ReadsBResponse, OpenSkyResponse, OpenSkyStateVector } from '../types.js';
 
+// ===== Safe number coercion =====
+
+function toFiniteNumber(v: unknown, fallback: number): number {
+  if (typeof v === 'number' && Number.isFinite(v)) return v;
+  return fallback;
+}
+
+// ===== Upstream payload guards =====
+
+function isReadsBResponse(d: unknown): d is ReadsBResponse {
+  return d != null && typeof d === 'object' && Array.isArray((d as Record<string, unknown>).ac);
+}
+
+function isOpenSkyResponse(d: unknown): d is OpenSkyResponse {
+  if (d == null || typeof d !== 'object') return false;
+  const r = d as Record<string, unknown>;
+  return r.states === null || Array.isArray(r.states);
+}
+
 // ===== readsb v2 Normalizer (adsb.lol + airplanes.live) =====
 
 function classifyAircraftType(ac: ReadsBAircraft): ADSBFlight['type'] {
@@ -20,17 +39,19 @@ function classifySource(ac: ReadsBAircraft): ADSBFlight['source'] {
   return 'other';
 }
 
-export function normalizeReadsB(response: ReadsBResponse): ADSBFlight[] {
-  if (!response.ac || !Array.isArray(response.ac)) return [];
+export function normalizeReadsB(response: unknown): ADSBFlight[] {
+  if (!isReadsBResponse(response)) return [];
   
   const now = response.now || Date.now();
   const flights: ADSBFlight[] = [];
 
   for (const ac of response.ac) {
-    // Skip aircraft without position
-    if (ac.lat == null || ac.lon == null) continue;
+    if (ac == null || typeof ac !== 'object') continue;
+    // Skip aircraft without valid position
+    if (typeof ac.lat !== 'number' || typeof ac.lon !== 'number') continue;
+    if (!Number.isFinite(ac.lat) || !Number.isFinite(ac.lon)) continue;
     // Skip invalid hex
-    if (!ac.hex || ac.hex.startsWith('~')) continue;
+    if (!ac.hex || typeof ac.hex !== 'string' || ac.hex.startsWith('~')) continue;
 
     const altBaro = ac.alt_baro;
     const altitude = altBaro === 'ground' ? 0 : (typeof altBaro === 'number' ? altBaro : 0);
@@ -63,9 +84,9 @@ export function normalizeReadsB(response: ReadsBResponse): ADSBFlight[] {
       latitude: ac.lat,
       longitude: ac.lon,
       altitude,
-      heading: ac.track ?? 0,
-      groundSpeed: ac.gs ?? 0,
-      verticalRate: ac.baro_rate ?? ac.geom_rate ?? 0,
+      heading: toFiniteNumber(ac.track, 0),
+      groundSpeed: toFiniteNumber(ac.gs, 0),
+      verticalRate: toFiniteNumber(ac.baro_rate ?? ac.geom_rate, 0),
       squawk: ac.squawk || '',
       source: classifySource(ac),
       category: ac.category || '',
@@ -84,24 +105,28 @@ export function normalizeReadsB(response: ReadsBResponse): ADSBFlight[] {
 
 // ===== OpenSky Normalizer (Fallback) =====
 
-export function normalizeOpenSky(response: OpenSkyResponse): ADSBFlight[] {
+export function normalizeOpenSky(response: unknown): ADSBFlight[] {
+  if (!isOpenSkyResponse(response)) return [];
   if (!response.states || !Array.isArray(response.states)) return [];
 
   const now = Date.now();
   const flights: ADSBFlight[] = [];
 
   for (const sv of response.states) {
+    if (!Array.isArray(sv) || sv.length < 17) continue;
     const [icao24, callsign, , , , lon, lat, baroAlt, onGround, velocity, track, vertRate, , , squawk, , posSource] = sv;
 
-    // Skip without position
-    if (lat == null || lon == null) continue;
+    // Skip without valid position
+    if (typeof lat !== 'number' || typeof lon !== 'number') continue;
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
+    if (typeof icao24 !== 'string') continue;
 
     // Convert meters to feet (baro_altitude is in meters in OpenSky)
-    const altitudeFt = baroAlt != null ? Math.round(baroAlt * 3.28084) : 0;
+    const altitudeFt = typeof baroAlt === 'number' && Number.isFinite(baroAlt) ? Math.round(baroAlt * 3.28084) : 0;
     // Convert m/s to knots
-    const speedKt = velocity != null ? Math.round(velocity * 1.94384) : 0;
+    const speedKt = typeof velocity === 'number' && Number.isFinite(velocity) ? Math.round(velocity * 1.94384) : 0;
     // Convert m/s to ft/min
-    const vRateFpm = vertRate != null ? Math.round(vertRate * 196.85) : 0;
+    const vRateFpm = typeof vertRate === 'number' && Number.isFinite(vertRate) ? Math.round(vertRate * 196.85) : 0;
 
     const source: ADSBFlight['source'] = posSource === 2 ? 'mlat' : posSource === 0 ? 'adsb' : 'other';
 
@@ -113,7 +138,7 @@ export function normalizeOpenSky(response: OpenSkyResponse): ADSBFlight[] {
       latitude: lat,
       longitude: lon,
       altitude: onGround ? 0 : altitudeFt,
-      heading: track ?? 0,
+      heading: typeof track === 'number' && Number.isFinite(track) ? track : 0,
       groundSpeed: speedKt,
       verticalRate: vRateFpm,
       squawk: squawk || '',

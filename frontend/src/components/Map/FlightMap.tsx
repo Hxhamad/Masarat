@@ -285,6 +285,7 @@ export default function FlightMap() {
     const isDense = viewportFlights.length > DENSE_FLIGHT_THRESHOLD;
     const shouldShowLabels = !isDense && map.getZoom() >= 7 && viewportFlights.length <= 140;
     const flightsToRender: ADSBFlight[] = isDense ? [] : [...viewportFlights];
+    const skipAnimation = flightsToRender.length > 350;
 
     // Always include the selected flight even if outside viewport.
     if (
@@ -306,8 +307,8 @@ export default function FlightMap() {
       let marker = markersRef.current.get(flight.icao24);
 
       if (marker) {
-        // Animate position updates when the visible set is moderate enough.
-        if (flightsToRender.length <= 750) {
+        // Animate position updates only when the count is low enough.
+        if (!skipAnimation) {
           animateMarkerPosition(flight.icao24, marker, flight.latitude, flight.longitude);
         } else {
           cancelMarkerAnimation(flight.icao24);
@@ -341,15 +342,20 @@ export default function FlightMap() {
         marker.bindPopup(() => buildPopupHtml(flight), { className: 'flight-popup', closeButton: false });
       }
 
-      marker.unbindTooltip();
-      marker.bindTooltip(displayCallsign(flight), {
-        permanent: shouldShowLabels || flight.icao24 === selectedFlight,
-        direction: 'top',
-        offset: [0, -14],
-        opacity: 0.95,
-        className: 'flight-id-tooltip',
-        sticky: !shouldShowLabels,
-      });
+      // Tooltip — only rebind when permanent-label state changes to avoid DOM churn
+      const wantPermanent = shouldShowLabels || flight.icao24 === selectedFlight;
+      const existing = marker.getTooltip();
+      if (!existing || (existing.options.permanent !== wantPermanent)) {
+        marker.unbindTooltip();
+        marker.bindTooltip(displayCallsign(flight), {
+          permanent: wantPermanent,
+          direction: 'top',
+          offset: [0, -14],
+          opacity: 0.95,
+          className: 'flight-id-tooltip',
+          sticky: !shouldShowLabels,
+        });
+      }
     }
 
     // Remove stale markers

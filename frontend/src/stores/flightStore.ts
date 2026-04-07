@@ -13,6 +13,7 @@ interface FlightState {
   stats: AggregatorStats;
   connectionStatus: ConnectionStatus;
   lastMessageAt: number;
+  snapshotGeneration: number;
 
   // Actions
   replaceFlights: (flights: ADSBFlight[]) => void;
@@ -35,6 +36,7 @@ export const useFlightStore = create<FlightState>((set) => ({
   },
   connectionStatus: 'disconnected' as ConnectionStatus,
   lastMessageAt: 0,
+  snapshotGeneration: 0,
 
   replaceFlights: (incoming) =>
     set((state) => {
@@ -47,6 +49,7 @@ export const useFlightStore = create<FlightState>((set) => ({
         flights: next,
         selectedFlight: state.selectedFlight && next.has(state.selectedFlight) ? state.selectedFlight : null,
         lastMessageAt: Date.now(),
+        snapshotGeneration: state.snapshotGeneration + 1,
       };
     }),
 

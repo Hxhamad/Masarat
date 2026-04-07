@@ -24,6 +24,14 @@ import { startWeatherScheduler, stopWeatherScheduler } from './services/weatherS
 import { startGNSSScheduler, stopGNSSScheduler } from './services/gnssScheduler.js';
 
 const PORT = parseInt(process.env.PORT || '3001', 10);
+const API_KEY = process.env.API_KEY || '';
+const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
+const RATE_LIMIT_API = parseInt(process.env.RATE_LIMIT_API || '120', 10);
+const RATE_LIMIT_METRICS = parseInt(process.env.RATE_LIMIT_METRICS || '10', 10);
+const CLEANUP_INTERVAL_MS = parseInt(process.env.CLEANUP_INTERVAL_MS || '3600000', 10);
+
+/** Export for use by route guards */
+export { API_KEY };
 
 async function start(): Promise<void> {
   // Initialize SQLite
@@ -31,32 +39,62 @@ async function start(): Promise<void> {
   initHealthTables();
   initWeatherTables();
   initGNSSTables();
-  console.log('[db] SQLite initialized (WAL mode)');
 
-  // Create Fastify
-  const app = Fastify({ logger: false });
+  // Create Fastify with structured logging (Pino)
+  const app = Fastify({
+    logger: {
+      level: LOG_LEVEL,
+      ...(process.env.NODE_ENV !== 'production' && { transport: { target: 'pino-pretty', options: { translateTime: 'HH:MM:ss', ignore: 'pid,hostname' } } }),
+    },
+  });
+
+  app.log.info('SQLite initialized (WAL mode)');
 
   const allowedOrigins = (process.env.CORS_ORIGINS ?? 'http://localhost:5173').split(',').map((o) => o.trim());
-  await app.register(cors, { origin: allowedOrigins });
+  await app.register(cors, {
+    origin: process.env.NODE_ENV === 'production' ? allowedOrigins : true,
+    credentials: true,
+  });
   await app.register(compress);
   await app.register(helmet, { contentSecurityPolicy: false });
-  await app.register(rateLimit, { max: 120, timeWindow: '1 minute' });
+
+  // Default API rate limit
+  await app.register(rateLimit, {
+    max: RATE_LIMIT_API,
+    timeWindow: '1 minute',
+    keyGenerator: (req) => req.ip,
+  });
 
   // Custom error handler — prevent stack trace leaks
-  app.setErrorHandler((error: Error & { statusCode?: number }, _req, reply) => {
-    const status = error.statusCode ?? 500;
-    reply.status(status).send({ error: status >= 500 ? 'Internal Server Error' : error.message });
+  app.setErrorHandler((error, req, reply) => {
+    const status = (error as Error & { statusCode?: number }).statusCode ?? 500;
+    if (status >= 500) {
+      req.log.error(error, 'unhandled error');
+    }
+    reply.status(status).send({ error: status >= 500 ? 'Internal Server Error' : (error as Error).message });
   });
 
   // Register REST routes
   await app.register(flightRoutes);
-  await app.register(statsRoutes);
   await app.register(firHealthRoutes);
-  await app.register(metricsRoutes);
   await app.register(weatherRoutes);
   await app.register(gnssRoutes);
+  // Operational routes — tighter rate limit
+  await app.register(async (scope) => {
+    scope.addHook('onRequest', async (req, reply) => {
+      if (API_KEY) {
+        const provided = req.headers['x-api-key'] || (req.query as Record<string, string>).apiKey;
+        if (provided !== API_KEY) {
+          return reply.code(401).send({ error: 'Unauthorized' });
+        }
+      }
+    });
+    await scope.register(rateLimit, { max: RATE_LIMIT_METRICS, timeWindow: '1 minute' });
+    await scope.register(statsRoutes);
+    await scope.register(metricsRoutes);
+  });
 
-  // Health check
+  // Health check (unauthenticated, lightweight)
   app.get('/api/health', async () => ({ status: 'ok', timestamp: Date.now() }));
 
   // Serve frontend static files in production
@@ -70,19 +108,19 @@ async function start(): Promise<void> {
     app.setNotFoundHandler(async (_req, reply) => {
       return reply.sendFile('index.html');
     });
-    console.log(`[server] Serving static files from ${publicDir}`);
+    app.log.info(`Serving static files from ${publicDir}`);
   }
 
   // Start HTTP server
   await app.listen({ port: PORT, host: '0.0.0.0' });
-  console.log(`[server] HTTP listening on :${PORT}`);
+  app.log.info(`HTTP listening on :${PORT}`);
 
   // Attach WebSocket to the underlying Node HTTP server
   const httpServer = app.server;
   initWebSocket(httpServer);
 
-  // Start ADS-B data aggregator
-  startAggregator();
+  // Start ADS-B data aggregator (await bootstrap before polling)
+  void startAggregator();
 
   // Load global FIR boundary data
   loadFIRData().then(() => {
@@ -94,22 +132,22 @@ async function start(): Promise<void> {
     startGNSSScheduler();
   });
 
-  // Periodic trail cleanup every hour
+  // Periodic trail cleanup
   const cleanupInterval = setInterval(() => {
     const removed = cleanupOldTrails();
-    if (removed > 0) console.log(`[db] Cleaned up ${removed} old trail points`);
+    if (removed > 0) app.log.info({ removed }, 'cleaned old trail points');
     const healthRemoved = cleanupOldHealth();
-    if (healthRemoved > 0) console.log(`[db] Cleaned up ${healthRemoved} old health snapshots`);
+    if (healthRemoved > 0) app.log.info({ removed: healthRemoved }, 'cleaned old health snapshots');
     const metarRemoved = cleanupOldMetar();
     const alertsRemoved = cleanupOldAlerts();
-    if (metarRemoved + alertsRemoved > 0) console.log(`[db] Cleaned up ${metarRemoved} old METARs, ${alertsRemoved} old alerts`);
+    if (metarRemoved + alertsRemoved > 0) app.log.info({ metarRemoved, alertsRemoved }, 'cleaned old weather data');
     const gnssRemoved = cleanupOldGNSS();
-    if (gnssRemoved > 0) console.log(`[db] Cleaned up ${gnssRemoved} old GNSS history points`);
-  }, 3_600_000);
+    if (gnssRemoved > 0) app.log.info({ removed: gnssRemoved }, 'cleaned old GNSS history');
+  }, CLEANUP_INTERVAL_MS);
 
   // Graceful shutdown
   const shutdown = async () => {
-    console.log('\n[server] Shutting down...');
+    app.log.info('Shutting down...');
     clearInterval(cleanupInterval);
     stopAggregator();
     stopWeatherScheduler();

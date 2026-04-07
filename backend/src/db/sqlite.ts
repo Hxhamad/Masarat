@@ -105,7 +105,13 @@ function flushQueuedTrailPoints(): void {
 
   const batch = queuedTrailPoints;
   queuedTrailPoints = [];
-  insertTrailBatchTxn!(batch);
+  try {
+    insertTrailBatchTxn!(batch);
+  } catch (err) {
+    // Restore points to the front of the queue so they are retried on the next flush
+    queuedTrailPoints = batch.concat(queuedTrailPoints);
+    throw err;
+  }
 }
 
 export function insertTrailPoint(icao24: string, lat: number, lon: number, alt: number, ts: number): void {

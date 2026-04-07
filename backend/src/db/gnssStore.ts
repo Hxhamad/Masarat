@@ -8,6 +8,15 @@ import { getDatabase } from './sqlite.js';
 import type Database from 'better-sqlite3';
 import type { GNSSFIRSummary, GNSSHistoryPoint, GNSSConfidence } from '../types/gnss.js';
 
+function safeJsonParse<T>(raw: unknown, fallback: T): T {
+  if (typeof raw !== 'string') return fallback;
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    return fallback;
+  }
+}
+
 let upsertSummaryStmt: Database.Statement | null = null;
 let summaryByFirStmt: Database.Statement | null = null;
 let insertHistoryStmt: Database.Statement | null = null;
@@ -91,7 +100,12 @@ function rowToSummary(r: Record<string, unknown>): GNSSFIRSummary {
     anomalyScore: r.anomaly_score as number,
     suspectedAffectedPct: r.suspected_affected_pct as number,
     confidence: r.confidence as GNSSConfidence,
-    evidence: JSON.parse(r.evidence_json as string),
+    evidence: safeJsonParse<GNSSFIRSummary['evidence']>(r.evidence_json, {
+      navIntegrityPresent: false,
+      mlatShareElevated: false,
+      positionDropoutElevated: false,
+      crossSourceAgreement: false,
+    }),
   };
 }
 

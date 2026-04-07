@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useLayerStore } from '../stores/layerStore';
 import { useGNSSStore } from '../stores/gnssStore';
 import { useMapViewportStore } from '../stores/mapViewportStore';
@@ -22,41 +22,36 @@ export function useGNSSPolling() {
   const viewportKey = useMapViewportStore((s) => s.viewportKey);
   const zoom = useMapViewportStore((s) => s.zoom);
   const store = useGNSSStore;
-  const mountedRef = useRef(true);
 
   useEffect(() => {
     if (!enabled || !bounds) return;
     const activeBounds = bounds;
 
-    let timer: ReturnType<typeof setInterval> | null = null;
-    let debounce: ReturnType<typeof setTimeout> | null = null;
+    const controller = new AbortController();
+    const { signal } = controller;
 
     async function poll() {
-      if (!mountedRef.current) return;
+      if (signal.aborted) return;
       store.getState().setLoading(true);
       try {
-        const response = await fetchGNSSHexBins(activeBounds, resolutionForZoom(zoom));
-        if (!mountedRef.current) return;
+        const response = await fetchGNSSHexBins(activeBounds, resolutionForZoom(zoom), 2, signal);
+        if (signal.aborted) return;
         store.getState().setHeatBins(response);
       } catch {
-        if (mountedRef.current) {
+        if (!signal.aborted) {
           store.getState().setError('Unable to load GNSS viewport cells');
         }
       } finally {
-        if (mountedRef.current) store.getState().setLoading(false);
+        if (!signal.aborted) store.getState().setLoading(false);
       }
     }
 
-    debounce = setTimeout(() => { void poll(); }, VIEWPORT_DEBOUNCE_MS);
-    timer = setInterval(() => void poll(), GNSS_INTERVAL);
+    const debounce = setTimeout(() => { void poll(); }, VIEWPORT_DEBOUNCE_MS);
+    const timer = setInterval(() => void poll(), GNSS_INTERVAL);
     return () => {
-      if (debounce) clearTimeout(debounce);
-      if (timer) clearInterval(timer);
+      controller.abort();
+      clearTimeout(debounce);
+      clearInterval(timer);
     };
   }, [enabled, bounds, viewportKey, zoom]);
-
-  useEffect(() => {
-    mountedRef.current = true;
-    return () => { mountedRef.current = false; };
-  }, []);
 }

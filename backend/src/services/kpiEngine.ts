@@ -119,7 +119,7 @@ function computeEfficiencyScore(flights: ADSBFlight[]): { score: number; ineffic
     if (f.trail.length < 3) continue; // Need enough trail to be meaningful
 
     const points = f.trail
-      .filter(p => p.lat && p.lon)
+      .filter(p => p.lat != null && p.lon != null)
       .sort((a, b) => a.ts - b.ts);
 
     if (points.length < 3) continue;

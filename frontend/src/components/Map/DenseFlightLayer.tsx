@@ -14,7 +14,7 @@ import { displayCallsign, formatAltitude } from '../../lib/utils';
 import type { ADSBFlight } from '../../types/flight';
 import type { DeckOverlay as DeckOverlayType } from '@deck.gl-community/leaflet';
 
-export const DENSE_FLIGHT_THRESHOLD = 1000;
+export const DENSE_FLIGHT_THRESHOLD = 400;
 const VIEWPORT_PADDING_DEG = 0.75;
 
 type RGBA = [number, number, number, number];

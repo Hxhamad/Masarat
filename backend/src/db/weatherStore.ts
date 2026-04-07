@@ -14,6 +14,15 @@ import type {
   FIRForecastSummary,
 } from '../types/weather.js';
 
+function safeJsonParse<T>(raw: unknown, fallback: T): T {
+  if (typeof raw !== 'string') return fallback;
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    return fallback;
+  }
+}
+
 let upsertMetarStmt: Database.Statement | null = null;
 let metarByFirStmt: Database.Statement | null = null;
 let metarByBoundsStmt: Database.Statement | null = null;
@@ -165,7 +174,7 @@ function rowToMetar(r: Record<string, unknown>): METARObservation {
     temperatureC: r.temperature_c as number | undefined,
     dewpointC: r.dewpoint_c as number | undefined,
     altimeterInHg: r.altimeter_inhg as number | undefined,
-    firIds: JSON.parse((r.fir_ids as string) || '[]'),
+    firIds: safeJsonParse<string[]>(r.fir_ids, []),
   };
 }
 
@@ -227,8 +236,8 @@ function rowToAlert(r: Record<string, unknown>): WeatherAlertSummary {
     validTo: r.valid_to as number | undefined,
     title: r.title as string,
     summary: r.summary as string,
-    firIds: JSON.parse((r.fir_ids as string) || '[]'),
-    geometry: r.geometry ? JSON.parse(r.geometry as string) : undefined,
+    firIds: safeJsonParse<string[]>(r.fir_ids, []),
+    geometry: r.geometry ? safeJsonParse(r.geometry, undefined) : undefined,
   };
 }
 
@@ -262,7 +271,9 @@ export function getForecast(firId: string): FIRForecastSummary | undefined {
     firId: row.fir_id as string,
     generatedAt: row.generated_at as number,
     hours: row.hours as number,
-    hourly: JSON.parse(row.hourly_json as string),
+    hourly: safeJsonParse<FIRForecastSummary['hourly']>(row.hourly_json, {
+      time: [], precipitationMm: [], visibilityM: [], cloudCoverPct: [],
+    }),
   };
 }
 
@@ -287,7 +298,7 @@ export function getRadarCatalog(): RadarFrameCatalog | null {
   return {
     provider: row.provider as 'rainviewer',
     generatedAt: row.generated_at as number,
-    frames: JSON.parse(row.frames_json as string),
+    frames: safeJsonParse(row.frames_json, []),
   };
 }
 

@@ -14,6 +14,7 @@ import { point } from '@turf/helpers';
 import type { Polygon, MultiPolygon, Feature } from 'geojson';
 
 export interface FIRWorkerRequest {
+  requestId: number;
   flights: Array<{ icao24: string; lat: number; lng: number }>;
   firs: Array<{
     id: string;
@@ -23,12 +24,13 @@ export interface FIRWorkerRequest {
 }
 
 export interface FIRWorkerResponse {
+  requestId: number;
   /** Set of icao24s that passed the spatial filter */
   insideIds: string[];
 }
 
 self.onmessage = (e: MessageEvent<FIRWorkerRequest>) => {
-  const { flights, firs } = e.data;
+  const { requestId, flights, firs } = e.data;
   const insideIds: string[] = [];
 
   for (const flight of flights) {
@@ -65,6 +67,6 @@ self.onmessage = (e: MessageEvent<FIRWorkerRequest>) => {
     }
   }
 
-  const response: FIRWorkerResponse = { insideIds };
+  const response: FIRWorkerResponse = { requestId, insideIds };
   self.postMessage(response);
 };

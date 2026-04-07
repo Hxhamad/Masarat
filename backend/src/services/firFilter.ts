@@ -2,7 +2,8 @@
  * FIR Filter Service
  *
  * Two-stage spatial filtering: fast bbox pre-filter, then exact point-in-polygon.
- * Mirrors the frontend approach but runs server-side for API consumers.
+ * Uses an incremental membership index that only re-tests flights whose position
+ * has changed significantly since the last rebuild.
  */
 
 import * as turf from '@turf/turf';
@@ -23,30 +24,69 @@ function inPolygon(lat: number, lon: number, entry: FIREntry): boolean {
   return turf.booleanPointInPolygon(pt, entry.feature);
 }
 
-// ── Cached FIR membership index ──
-// Rebuilt at most every INDEX_REBUILD_INTERVAL_MS so that health/GNSS jobs
-// don't repeatedly full-scan the flight cache with point-in-polygon tests.
+// ── Incremental FIR membership index ──
+// Full rebuild on first pass, then only re-tests flights whose position moved
+// more than MOVE_THRESHOLD_DEG since last index.
 
 const INDEX_REBUILD_INTERVAL_MS = 30_000; // 30 s
+const MOVE_THRESHOLD_DEG = 0.05; // ~5.5 km — skip re-test if flight barely moved
+
 let firMembershipIndex = new Map<string, Set<string>>(); // firId → Set<icao24>
+/** Per-flight position at the time it was last classified. */
+let indexedPositions = new Map<string, { lat: number; lon: number }>(); // icao24 → pos
+/** Per-flight FIR memberships for incremental updates. */
+let flightFIRs = new Map<string, Set<string>>(); // icao24 → Set<firId>
 let lastIndexRebuild = 0;
 
 function rebuildIndex(): void {
   const entries = getAllFIREntries();
   const allFlights = flightCache.getAll();
-  const newIndex = new Map<string, Set<string>>();
+  const allIds = new Set<string>();
 
+  // Initialize empty sets for every FIR in the new index
+  const newIndex = new Map<string, Set<string>>();
   for (const entry of entries) {
     newIndex.set(entry.feature.properties.id, new Set());
   }
 
   for (const f of allFlights) {
-    if (!f.latitude || !f.longitude) continue;
+    if (f.latitude == null || f.longitude == null) continue;
+    allIds.add(f.icao24);
+
+    // Check if this flight moved enough to warrant re-classification
+    const prev = indexedPositions.get(f.icao24);
+    if (prev &&
+        Math.abs(f.latitude - prev.lat) < MOVE_THRESHOLD_DEG &&
+        Math.abs(f.longitude - prev.lon) < MOVE_THRESHOLD_DEG) {
+      // Position unchanged — reuse prior FIR memberships
+      const priorFIRs = flightFIRs.get(f.icao24);
+      if (priorFIRs) {
+        for (const firId of priorFIRs) {
+          newIndex.get(firId)?.add(f.icao24);
+        }
+        continue;
+      }
+    }
+
+    // Classify this flight against all FIRs
+    const memberOf = new Set<string>();
     for (const entry of entries) {
+      const firId = entry.feature.properties.id;
       if (inBounds(f.latitude, f.longitude, entry) &&
           inPolygon(f.latitude, f.longitude, entry)) {
-        newIndex.get(entry.feature.properties.id)!.add(f.icao24);
+        newIndex.get(firId)!.add(f.icao24);
+        memberOf.add(firId);
       }
+    }
+    flightFIRs.set(f.icao24, memberOf);
+    indexedPositions.set(f.icao24, { lat: f.latitude, lon: f.longitude });
+  }
+
+  // Prune stale entries from the position/FIR caches
+  for (const icao24 of indexedPositions.keys()) {
+    if (!allIds.has(icao24)) {
+      indexedPositions.delete(icao24);
+      flightFIRs.delete(icao24);
     }
   }
 

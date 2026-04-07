@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useFlightStore } from '../stores/flightStore';
+import { useMapViewportStore } from '../stores/mapViewportStore';
 import type { ADSBFlight, AggregatorStats, WSMessage } from '../types/flight';
 
 const BACKOFF_BASE = 1000;
@@ -165,4 +166,15 @@ export function useWebSocket() {
       }
     };
   }, [replaceFlights, applyServerBatch, setConnectionStatus]);
+
+  // Send viewport subscription to server when map viewport changes
+  const bounds = useMapViewportStore((s) => s.bounds);
+  useEffect(() => {
+    const ws = wsRef.current;
+    if (!ws || ws.readyState !== WebSocket.OPEN || !bounds) return;
+    ws.send(JSON.stringify({
+      type: 'subscribe',
+      viewport: bounds,
+    }));
+  }, [bounds]);
 }

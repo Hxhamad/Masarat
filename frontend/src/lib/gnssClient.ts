@@ -1,7 +1,7 @@
 import type { GeoBounds, GNSSFIRSummary, GNSSHexBinsResponse, GNSSHistoryPoint } from '../types/gnss';
 
-async function fetchJson<T>(url: string): Promise<T> {
-  const res = await fetch(url);
+async function fetchJson<T>(url: string, signal?: AbortSignal): Promise<T> {
+  const res = await fetch(url, signal ? { signal } : undefined);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json() as Promise<T>;
 }
@@ -35,6 +35,7 @@ export async function fetchGNSSHexBins(
   bounds: GeoBounds,
   resolution: number,
   bucketMinutes = 2,
+  signal?: AbortSignal,
 ): Promise<GNSSHexBinsResponse> {
   const params = new URLSearchParams({
     minLat: String(bounds.minLat),
@@ -44,5 +45,5 @@ export async function fetchGNSSHexBins(
     resolution: String(resolution),
     bucketMinutes: String(bucketMinutes),
   });
-  return fetchJson<GNSSHexBinsResponse>(`/api/gnss/hexbins?${params.toString()}`);
+  return fetchJson<GNSSHexBinsResponse>(`/api/gnss/hexbins?${params.toString()}`, signal);
 }
