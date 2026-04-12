@@ -31,6 +31,8 @@ jobs:
     defaults:
       run:
         working-directory: backend
+    env:
+      NODE_OPTIONS: '--max-old-space-size=4096 --turbo-fast-api-calls'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -39,7 +41,37 @@ jobs:
           cache: npm
           cache-dependency-path: backend/package-lock.json
       - run: npm ci
-      - run: npx tsc --noEmit
+
+      # Type checking
+      - name: Type Check
+        run: npx tsc --noEmit
+
+      # Unit tests
+      - name: Unit Tests
+        run: npx vitest run --reporter=verbose
+
+  benchmark:
+    name: Performance Benchmark
+    runs-on: ubuntu-latest
+    needs: backend
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      NODE_OPTIONS: '--max-old-space-size=4096 --turbo-fast-api-calls'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+
+      # Run the 50k-object WebSocket performance benchmark
+      - name: WebSocket Benchmark (50k aircraft)
+        run: npx tsx src/bench/wsBenchmark.ts
+        timeout-minutes: 5
 
   e2e:
     name: E2E Tests

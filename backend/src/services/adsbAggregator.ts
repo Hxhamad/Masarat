@@ -1,14 +1,15 @@
 import type { ADSBFlight, AggregatorStats } from '../types.js';
-import { normalizeReadsB, normalizeOpenSky } from './normalizer.js';
+import { normalizeReadsBAsync, normalizeOpenSkyAsync, shutdownNormalizerPool } from './normalizer.js';
 import { flightCache } from './cache.js';
 import { insertTrailPoint } from '../db/sqlite.js';
+import { spatialIndex } from './h3SpatialIndex.js';
 
 type DataSource = 'adsb-lol' | 'airplanes-live' | 'opensky';
 
 interface SourceConfig {
   name: DataSource;
   url: string;
-  normalize: (data: unknown) => ADSBFlight[];
+  normalize: (data: unknown) => Promise<ADSBFlight[]>;
   rateLimit: number; // ms between requests
 }
 
@@ -16,19 +17,19 @@ const sources: SourceConfig[] = [
   {
     name: 'adsb-lol',
     url: 'https://api.adsb.lol/v2/lat/0/lon/0/dist/20000',
-    normalize: (d) => normalizeReadsB(d),
+    normalize: (d) => normalizeReadsBAsync(d),
     rateLimit: 8_000,
   },
   {
     name: 'airplanes-live',
     url: 'https://api.airplanes.live/v2/point/46/2/1200',
-    normalize: (d) => normalizeReadsB(d),
+    normalize: (d) => normalizeReadsBAsync(d),
     rateLimit: 4_000,
   },
   {
     name: 'opensky',
     url: 'https://opensky-network.org/api/states/all',
-    normalize: (d) => normalizeOpenSky(d),
+    normalize: (d) => normalizeOpenSkyAsync(d),
     rateLimit: 12_000,
   },
 ];
@@ -188,12 +189,20 @@ function applySnapshot(sourceName: DataSource, flights: ADSBFlight[]): void {
 
     flightCache.set(f);
 
+    // Update H3 spatial index for this flight's current position
+    spatialIndex.update(f.icao24, f.latitude, f.longitude);
+
     if (shouldBroadcast) {
       changedFlights.push(f);
     }
   }
 
   const removed = flightCache.evictStale();
+
+  // Remove evicted flights from the spatial index
+  if (removed.length > 0) {
+    spatialIndex.removeBatch(removed);
+  }
 
   stats.totalFlights = flightCache.size;
   stats.dataSource = sourceName;
@@ -235,7 +244,7 @@ async function fetchFromSource(source: SourceConfig): Promise<ADSBFlight[]> {
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
-    return source.normalize(data);
+    return await source.normalize(data);
   } finally {
     clearTimeout(timeout);
   }
@@ -285,10 +294,11 @@ export async function startAggregator(): Promise<void> {
   poll();
 }
 
-export function stopAggregator(): void {
+export async function stopAggregator(): Promise<void> {
   if (pollTimer) {
     clearTimeout(pollTimer);
     pollTimer = null;
   }
+  await shutdownNormalizerPool();
   console.log('[aggregator] Stopped');
 }

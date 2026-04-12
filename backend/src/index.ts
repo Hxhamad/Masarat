@@ -149,7 +149,7 @@ async function start(): Promise<void> {
   const shutdown = async () => {
     app.log.info('Shutting down...');
     clearInterval(cleanupInterval);
-    stopAggregator();
+    await stopAggregator();
     stopWeatherScheduler();
     stopGNSSScheduler();
     closeDatabase();

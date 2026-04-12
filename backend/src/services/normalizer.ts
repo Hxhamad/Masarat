@@ -1,4 +1,59 @@
 import type { ADSBFlight, ReadsBAircraft, ReadsBResponse, OpenSkyResponse, OpenSkyStateVector } from '../types.js';
+import { WorkerPool } from './workerPool.js';
+
+// ===== Worker Pool Singleton =====
+//
+// Lazy-initialized on first async call. The pool is shared across
+// all aggregator sources and reused for the lifetime of the process.
+
+let pool: WorkerPool | null = null;
+
+function getPool(): WorkerPool {
+  if (!pool) {
+    pool = new WorkerPool();
+    console.log(`[normalizer] WorkerPool initialized with ${pool.size} threads`);
+  }
+  return pool;
+}
+
+/**
+ * Gracefully tear down the worker pool.
+ * Called during server shutdown.
+ */
+export async function shutdownNormalizerPool(): Promise<void> {
+  if (pool) {
+    await pool.shutdown();
+    pool = null;
+  }
+}
+
+// ===== Async Normalization (Worker-Thread Based) =====
+//
+// These are the primary entry points used by adsbAggregator.ts.
+// They dispatch raw JSON payloads to worker threads, which write
+// numeric fields into SharedArrayBuffer and return string metadata
+// via MessagePort — completely bypassing JSON serialization overhead
+// for the hot numeric path.
+
+/**
+ * Normalize a ReadsB response payload using worker threads.
+ * The event loop remains unblocked during the 50,000-object spike.
+ */
+export async function normalizeReadsBAsync(response: unknown): Promise<ADSBFlight[]> {
+  if (!isReadsBResponse(response)) return [];
+  return getPool().normalize('readsb', response);
+}
+
+/**
+ * Normalize an OpenSky response payload using worker threads.
+ */
+export async function normalizeOpenSkyAsync(response: unknown): Promise<ADSBFlight[]> {
+  if (!isOpenSkyResponse(response)) return [];
+  if (!response.states || !Array.isArray(response.states)) return [];
+  return getPool().normalize('opensky', response);
+}
+
+// ===== Synchronous Normalization (Original — preserved for tests & fallback) =====
 
 // ===== Safe number coercion =====
 

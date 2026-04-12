@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { useFlightStore } from '../stores/flightStore';
 import { useMapViewportStore } from '../stores/mapViewportStore';
-import type { ADSBFlight, AggregatorStats, WSMessage } from '../types/flight';
+import type { ADSBFlight, AggregatorStats } from '../types/flight';
+import { decodeMessage, type AircraftSnapshot } from '../../../shared/aircraftProto';
 
 const BACKOFF_BASE = 1000;
 const BACKOFF_MAX = 30000;
@@ -11,6 +12,31 @@ interface PendingServerBatch {
   updates: Map<string, ADSBFlight>;
   removed: Set<string>;
   stats: AggregatorStats | null;
+}
+
+/** Convert a decoded AircraftSnapshot back into the ADSBFlight shape used by stores */
+function snapshotToFlight(s: AircraftSnapshot): ADSBFlight {
+  return {
+    icao24: s.icao24,
+    callsign: s.callsign,
+    registration: s.registration,
+    aircraftType: s.aircraftType,
+    latitude: s.latitude,
+    longitude: s.longitude,
+    altitude: s.altitude,
+    heading: s.heading,
+    groundSpeed: s.groundSpeed,
+    verticalRate: s.verticalRate,
+    squawk: s.squawk,
+    source: s.source,
+    category: s.category,
+    isOnGround: s.isOnGround,
+    lastSeen: s.lastSeen,
+    timestamp: s.timestamp,
+    type: s.type,
+    trail: [],
+    met: s.met,
+  };
 }
 
 export function useWebSocket() {
@@ -69,6 +95,94 @@ export function useWebSocket() {
       }, WS_FLUSH_INTERVAL_MS);
     }
 
+    /**
+     * Handle an incoming binary message from the server.
+     * Decodes the protobuf-style Uint8Array and routes to the
+     * appropriate store action.
+     */
+    function handleBinaryMessage(data: ArrayBuffer): void {
+      const decoded = decodeMessage(data);
+      if (!decoded) return;
+
+      switch (decoded.type) {
+        case 'flight-update': {
+          const flights = decoded.data.map(snapshotToFlight);
+
+          if (awaitingInitialSnapshot.current) {
+            awaitingInitialSnapshot.current = false;
+            clearPendingBatch();
+            replaceFlights(flights);
+            break;
+          }
+
+          if (flights.length > 0) {
+            for (const flight of flights) {
+              pendingBatch.current.removed.delete(flight.icao24);
+              pendingBatch.current.updates.set(flight.icao24, flight);
+            }
+            scheduleFlush();
+          }
+          break;
+        }
+        case 'flight-remove': {
+          if (decoded.data.length > 0) {
+            for (const icao24 of decoded.data) {
+              pendingBatch.current.updates.delete(icao24);
+              pendingBatch.current.removed.add(icao24);
+            }
+            scheduleFlush();
+          }
+          break;
+        }
+        case 'stats': {
+          pendingBatch.current.stats = decoded.data;
+          scheduleFlush();
+          break;
+        }
+      }
+    }
+
+    /**
+     * Handle a text (JSON) message — fallback path for legacy/mixed mode.
+     */
+    function handleTextMessage(text: string): void {
+      try {
+        const msg = JSON.parse(text);
+        switch (msg.type) {
+          case 'flight-update':
+            if (awaitingInitialSnapshot.current) {
+              awaitingInitialSnapshot.current = false;
+              clearPendingBatch();
+              replaceFlights(msg.data);
+              break;
+            }
+            if (msg.data.length > 0) {
+              for (const flight of msg.data as ADSBFlight[]) {
+                pendingBatch.current.removed.delete(flight.icao24);
+                pendingBatch.current.updates.set(flight.icao24, flight);
+              }
+              scheduleFlush();
+            }
+            break;
+          case 'flight-remove':
+            if (msg.data.length > 0) {
+              for (const icao24 of msg.data as string[]) {
+                pendingBatch.current.updates.delete(icao24);
+                pendingBatch.current.removed.add(icao24);
+              }
+              scheduleFlush();
+            }
+            break;
+          case 'stats':
+            pendingBatch.current.stats = msg.data;
+            scheduleFlush();
+            break;
+        }
+      } catch {
+        // Ignore malformed text messages
+      }
+    }
+
     function connect() {
       if (!mounted) return;
       
@@ -77,6 +191,7 @@ export function useWebSocket() {
       
       setConnectionStatus('connecting');
       const ws = new WebSocket(url);
+      ws.binaryType = 'arraybuffer'; // Receive binary as ArrayBuffer for zero-copy decode
       wsRef.current = ws;
 
       ws.onopen = () => {
@@ -85,46 +200,18 @@ export function useWebSocket() {
         clearPendingBatch();
         retriesRef.current = 0;
         setConnectionStatus('connected');
-        console.log('[ws] Connected');
+        console.log('[ws] Connected (binary protobuf mode)');
       };
 
       ws.onmessage = (event) => {
         if (!mounted) return;
-        try {
-          const msg: WSMessage = JSON.parse(event.data);
-          switch (msg.type) {
-            case 'flight-update':
-              if (awaitingInitialSnapshot.current) {
-                awaitingInitialSnapshot.current = false;
-                clearPendingBatch();
-                replaceFlights(msg.data);
-                break;
-              }
 
-              if (msg.data.length > 0) {
-                for (const flight of msg.data) {
-                  pendingBatch.current.removed.delete(flight.icao24);
-                  pendingBatch.current.updates.set(flight.icao24, flight);
-                }
-                scheduleFlush();
-              }
-              break;
-            case 'flight-remove':
-              if (msg.data.length > 0) {
-                for (const icao24 of msg.data) {
-                  pendingBatch.current.updates.delete(icao24);
-                  pendingBatch.current.removed.add(icao24);
-                }
-                scheduleFlush();
-              }
-              break;
-            case 'stats':
-              pendingBatch.current.stats = msg.data;
-              scheduleFlush();
-              break;
-          }
-        } catch {
-          // Ignore malformed messages
+        if (event.data instanceof ArrayBuffer) {
+          // Binary protobuf message
+          handleBinaryMessage(event.data);
+        } else if (typeof event.data === 'string') {
+          // JSON fallback
+          handleTextMessage(event.data);
         }
       };
 
